@@ -29,7 +29,7 @@ export default function Dashboard() {
       <Navbar user={session?.user} />
 
       {/* Main Content */}
-      <div className="max-w-6xl mx-auto pt-20 pb-5">
+      <div className="max-w-350 mx-auto pt-20 pb-5">
         <CVUpload />
       </div>
     </div>
