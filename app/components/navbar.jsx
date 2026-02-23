@@ -7,6 +7,9 @@ export default function Navbar({ user }) {
       <div>
         <img src="/job-match.png" className="h-12 w-auto" alt="JobMatch Logo" />
       </div>
+      <div className="text-lg font-semibold text-indigo-500 tracking-wide">
+        Smart CV Analysis & Job Matching
+      </div>
 
       <div className="flex items-center gap-4">
         <span className="bg-indigo-100 text-indigo-700 font-semibold px-4 py-2 rounded-lg shadow-sm">
