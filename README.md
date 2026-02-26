@@ -7,7 +7,7 @@ It allows users to upload and analyze CVs, search for jobs via external APIs, an
 ---
 
 ## 🚀 Live Demo
-- Frontend: [Job Hunt App](https://job-hunt-frontend-green.vercel.app)  
+- live: [Job Hunt App](https://job-hunt-frontend-green.vercel.app)  
 - Demo Video: [Loom Walkthrough](https://www.loom.com/share/a4f5a8c72a1c486e8c90bd78542373b2)
 
 ---
