@@ -701,11 +701,12 @@
     })
   })
   .then(r => r.json())
-  .then(d => {
-    removeTyping();
-    sendBtn.disabled = false;
-    addMsg(d.choices[0].message.content || 'Sorry, try again.', 'bot');
-  })
+.then(d => {
+  console.log('API Response:', JSON.stringify(d));
+  removeTyping();
+  sendBtn.disabled = false;
+  addMsg(d.choices[0].message.content || 'Sorry, try again.', 'bot');
+})
   .catch(() => {
     removeTyping();
     sendBtn.disabled = false;
