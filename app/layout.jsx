@@ -27,7 +27,7 @@ export default function RootLayout({ children }) {
         <Providers>{children}</Providers>
       </body>
        <Script
-          src="http://swismax.infinityfree.me/widget/widget.js"
+          src="https://swismax.infinityfree.me/widget/widget.js"
           data-token="7da3a7662c1bebd2a40145f2d1586618"
           strategy="afterInteractive"
         />
