@@ -686,11 +686,10 @@
   }
 
   function callAPI(message) {
-  fetch('https://openrouter.ai/api/v1/chat/completions', {
+  fetch('https://job-hunt-frontend-green.vercel.app/api/chat', {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer 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'
+      'Content-Type': 'application/json'
     },
     body: JSON.stringify({
       model: 'meta-llama/llama-3.1-8b-instruct:free',
