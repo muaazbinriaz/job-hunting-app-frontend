@@ -686,30 +686,33 @@
   }
 
   function callAPI(message) {
-    fetch(API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        token: TOKEN,
-        session_id: SESSION_ID,
-        message: message,
-      }),
+  fetch('https://openrouter.ai/api/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer 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'
+    },
+    body: JSON.stringify({
+      model: 'meta-llama/llama-3.1-8b-instruct:free',
+      max_tokens: 512,
+      messages: [
+        { role: 'system', content: 'You are a helpful assistant.' },
+        { role: 'user', content: message }
+      ]
     })
-      .then(function (r) {
-        return r.json();
-      })
-      .then(function (d) {
-        removeTyping();
-        sendBtn.disabled = false;
-        addMsg(d.reply || d.error || "Sorry, something went wrong.", "bot");
-      })
-      .catch(function () {
-        removeTyping();
-        sendBtn.disabled = false;
-        addMsg("Network error — please try again.", "bot");
-      });
-  }
-
+  })
+  .then(r => r.json())
+  .then(d => {
+    removeTyping();
+    sendBtn.disabled = false;
+    addMsg(d.choices[0].message.content || 'Sorry, try again.', 'bot');
+  })
+  .catch(() => {
+    removeTyping();
+    sendBtn.disabled = false;
+    addMsg('Network error — please try again.', 'bot');
+  });
+}
   sendBtn.addEventListener("click", sendMsg);
   inp.addEventListener("keydown", function (e) {
     if (e.key === "Enter" && !e.shiftKey) {
