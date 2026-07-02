@@ -41,10 +41,12 @@ export default function LoginPage() {
       {/* Side panel — hidden on mobile */}
       <div className="hidden lg:flex flex-col justify-between p-12 bg-[var(--brand)] text-white relative overflow-hidden">
         <div className="absolute inset-0 node-field opacity-10" />
-        <div className="relative">
-          <p className="font-[family-name:var(--font-display)] font-semibold text-xl">
-            JobMatch
-          </p>
+        <div className="relative inline-block bg-white rounded-xl px-3 py-2">
+          <img
+            src="/job-match.png"
+            className="h-10 w-auto"
+            alt="JobMatch Logo"
+          />
         </div>
         <div className="relative max-w-sm">
           <h1 className="font-[family-name:var(--font-display)] text-3xl font-semibold leading-tight">
@@ -71,9 +73,11 @@ export default function LoginPage() {
       <div className="flex items-center justify-center px-4 py-16 sm:px-8">
         <div className="w-full max-w-sm fade-up">
           <div className="mb-8 lg:hidden">
-            <p className="font-[family-name:var(--font-display)] font-semibold text-xl text-[var(--brand)]">
-              JobMatch
-            </p>
+            <img
+              src="/job-match.png"
+              className="h-12 w-auto"
+              alt="JobMatch Logo"
+            />
           </div>
 
           <h2 className="text-2xl font-semibold text-[var(--ink)]">

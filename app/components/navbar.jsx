@@ -2,49 +2,22 @@
 import { signOut } from "next-auth/react";
 import { useState } from "react";
 
-function LogoMark() {
-  // three connected nodes — echoes the Upload -> Analyze -> Match pipeline
-  return (
-    <svg
-      width="30"
-      height="16"
-      viewBox="0 0 30 16"
-      fill="none"
-      aria-hidden="true"
-    >
-      <line
-        x1="4"
-        y1="8"
-        x2="26"
-        y2="8"
-        stroke="var(--brand)"
-        strokeWidth="1.5"
-        strokeDasharray="1 3.5"
-      />
-      <circle cx="4" cy="8" r="4" fill="var(--brand)" />
-      <circle cx="15" cy="8" r="4" fill="var(--accent)" />
-      <circle cx="26" cy="8" r="4" fill="var(--match)" />
-    </svg>
-  );
-}
-
 export default function Navbar({ user }) {
   const [open, setOpen] = useState(false);
   const initial = user?.name?.trim()?.[0]?.toUpperCase() || "?";
 
   return (
     <nav className="fixed top-0 left-0 w-full z-40 bg-[var(--surface)]/90 backdrop-blur-md border-b border-[var(--border)]">
-      <div className="max-w-350 mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
+      <div className="max-w-350 mx-auto px-4 sm:px-6 py-2 flex items-center justify-between">
         <div className="flex items-center gap-3 min-w-0">
-          <LogoMark />
-          <div className="min-w-0">
-            <p className="font-[family-name:var(--font-display)] font-semibold text-[var(--ink)] leading-tight truncate">
-              JobMatch
-            </p>
-            <p className="hidden sm:block text-xs text-[var(--ink-faint)] leading-tight">
-              Smart CV analysis &amp; job matching
-            </p>
-          </div>
+          <img
+            src="/job-match.png"
+            className="h-12 w-auto shrink-0"
+            alt="JobMatch Logo"
+          />
+          <p className="hidden sm:block text-sm font-semibold text-[var(--brand)] tracking-wide truncate">
+            Smart CV Analysis &amp; Job Matching
+          </p>
         </div>
 
         {/* Desktop actions */}
