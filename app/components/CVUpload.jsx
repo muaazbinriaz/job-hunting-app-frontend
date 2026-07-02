@@ -8,14 +8,17 @@ import axios from "axios";
 export default function CVUpload() {
   const { data: session, status } = useSession();
   const [file, setFile] = useState(null);
+  const [dragActive, setDragActive] = useState(false);
   const [loading, setLoading] = useState(false);
   const [profile, setProfile] = useState(null);
+  const [profileLoading, setProfileLoading] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [jobs, setJobs] = useState([]);
   const [jobsLoading, setJobsLoading] = useState(false);
   const [jobsError, setJobsError] = useState("");
   const jobsFetched = useRef(false);
+  const fileInputRef = useRef(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -41,7 +44,10 @@ export default function CVUpload() {
             fetchJobs(session.accessToken);
           }
         })
-        .catch(() => {});
+        .catch(() => {})
+        .finally(() => setProfileLoading(false));
+    } else if (status === "authenticated") {
+      setProfileLoading(false);
     }
   }, [status, session]);
 
@@ -61,20 +67,26 @@ export default function CVUpload() {
     }
   };
 
-  const handleFileChange = (e) => {
-    const selectedFile = e.target.files?.[0];
-    if (selectedFile) {
-      if (selectedFile.type !== "application/pdf") {
-        setError("Please select a PDF file");
-        return;
-      }
-      if (selectedFile.size > 10 * 1024 * 1024) {
-        setError("File size must be less than 10MB");
-        return;
-      }
-      setError("");
-      setFile(selectedFile);
+  const validateAndSetFile = (selectedFile) => {
+    if (!selectedFile) return;
+    if (selectedFile.type !== "application/pdf") {
+      setError("Please select a PDF file");
+      return;
     }
+    if (selectedFile.size > 10 * 1024 * 1024) {
+      setError("File size must be less than 10MB");
+      return;
+    }
+    setError("");
+    setFile(selectedFile);
+  };
+
+  const handleFileChange = (e) => validateAndSetFile(e.target.files?.[0]);
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setDragActive(false);
+    validateAndSetFile(e.dataTransfer.files?.[0]);
   };
 
   const handleUpload = async () => {
@@ -97,6 +109,7 @@ export default function CVUpload() {
         setProfile(res.data.profile);
         setSuccess("CV uploaded and analyzed successfully!");
         setFile(null);
+        if (fileInputRef.current) fileInputRef.current.value = "";
         fetchJobs(session.accessToken);
       }
     } catch (err) {
@@ -107,183 +120,334 @@ export default function CVUpload() {
   };
 
   return (
-    <div className="bg-white p-8 rounded-lg shadow-lg max-w-full mx-auto flex gap-6">
-      <div>
-        <h2 className="text-3xl font-bold mb-2">Upload Your CV</h2>
-        <p className="text-gray-600 mb-6">
-          Upload a PDF file to extract your skills and experience
-        </p>
+    <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,420px)_1fr] gap-6 items-start">
+      {/* LEFT: Upload + Profile */}
+      <div className="flex flex-col gap-6">
+        <section className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-5 sm:p-6 fade-up">
+          <h2 className="text-lg font-semibold text-[var(--ink)]">Your CV</h2>
+          <p className="text-sm text-[var(--ink-soft)] mt-1 mb-4">
+            PDF only, up to 10MB.
+          </p>
 
-        {/* Upload Section */}
-        <div className="border-2 border-dashed border-blue-300 rounded-lg p-6 mb-6 bg-blue-50">
-          <input
-            type="file"
-            accept=".pdf"
-            onChange={handleFileChange}
-            className="mb-4 p-3 border-2 border-gray-300 rounded w-full focus:border-blue-500 focus:outline-none"
-            placeholder="Choose PDF file"
-          />
-
-          {file && (
-            <p className="text-sm text-green-600 mb-4">
-              File selected: {file.name}
-            </p>
-          )}
+          <label
+            htmlFor="cv-file"
+            onDragOver={(e) => {
+              e.preventDefault();
+              setDragActive(true);
+            }}
+            onDragLeave={() => setDragActive(false)}
+            onDrop={handleDrop}
+            className={`block cursor-pointer rounded-xl border-2 border-dashed p-6 text-center transition ${
+              dragActive
+                ? "border-[var(--accent)] bg-[var(--accent-soft)]"
+                : "border-[var(--border-strong)] bg-[var(--surface-sunken)] hover:border-[var(--brand)]"
+            }`}
+          >
+            <input
+              id="cv-file"
+              ref={fileInputRef}
+              type="file"
+              accept=".pdf"
+              onChange={handleFileChange}
+              className="sr-only"
+            />
+            <div className="mx-auto mb-3 h-10 w-10 rounded-full bg-[var(--brand-soft)] grid place-items-center">
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                <path
+                  d="M9 12V2M9 2 5 6M9 2l4 4"
+                  stroke="var(--brand)"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M2.5 12v2.5A1.5 1.5 0 0 0 4 16h10a1.5 1.5 0 0 0 1.5-1.5V12"
+                  stroke="var(--brand)"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </div>
+            {file ? (
+              <p className="text-sm font-medium text-[var(--match)]">
+                {file.name}
+              </p>
+            ) : (
+              <>
+                <p className="text-sm font-medium text-[var(--ink)]">
+                  Drag your CV here, or{" "}
+                  <span className="text-[var(--brand)] underline">browse</span>
+                </p>
+                <p className="text-xs text-[var(--ink-faint)] mt-1">
+                  PDF up to 10MB
+                </p>
+              </>
+            )}
+          </label>
 
           <button
             onClick={handleUpload}
             disabled={!file || loading}
-            className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition"
+            className="w-full mt-4 bg-[var(--accent)] text-white px-6 py-3 rounded-xl font-semibold hover:bg-[var(--accent-strong)] disabled:bg-[var(--border-strong)] disabled:text-[var(--ink-faint)] disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
           >
-            {loading ? "Analyzing CV..." : "Upload & Analyze"}
+            {loading && (
+              <span className="h-4 w-4 rounded-full border-2 border-white/40 border-t-white animate-spin" />
+            )}
+            {loading ? "Analyzing CV…" : "Upload & analyze"}
           </button>
-        </div>
 
-        {/* Error Message */}
-        {error && (
-          <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded">
-            <p className="text-red-700 font-semibold">Error</p>
-            <p className="text-red-600">{error}</p>
-          </div>
-        )}
+          {error && (
+            <div className="bg-[#FDEDEA] border border-[#F4C7BE] text-[#A23B24] text-sm rounded-lg px-4 py-3 mt-4">
+              {error}
+            </div>
+          )}
+          {success && (
+            <div className="bg-[var(--match-soft)] border border-[#BFE7D3] text-[#146B49] text-sm rounded-lg px-4 py-3 mt-4">
+              {success}
+            </div>
+          )}
+        </section>
 
-        {/* Success Message */}
-        {success && (
-          <div className="bg-green-50 border-l-4 border-green-500 p-4 mb-6 rounded">
-            <p className="text-green-700 font-semibold">{success}</p>
-          </div>
-        )}
+        {profileLoading ? (
+          <ProfileSkeleton />
+        ) : (
+          profile && (
+            <section className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-5 sm:p-6 fade-up">
+              <h3 className="text-lg font-semibold text-[var(--ink)] mb-4">
+                Profile
+              </h3>
 
-        {/* Profile Section */}
-        {profile && (
-          <div className="bg-gray-50 p-6 rounded-lg mb-8">
-            <h3 className="text-2xl font-bold mb-6 text-gray-800">
-              Your Profile
-            </h3>
-
-            {profile.summary && (
-              <div className="mb-6 pb-6 border-b">
-                <h4 className="text-lg font-semibold mb-3 text-gray-700">
-                  Summary
-                </h4>
-                <p className="text-gray-700 leading-relaxed">
-                  {profile.summary}
-                </p>
-              </div>
-            )}
-
-            {profile.skills?.length > 0 && (
-              <div className="mb-6 pb-6 border-b">
-                <h4 className="text-lg font-semibold mb-3 text-gray-700">
-                  Skills
-                </h4>
-                <div className="flex flex-wrap gap-2">
-                  {profile.skills.map((skill, i) => (
-                    <span
-                      key={i}
-                      className="bg-blue-200 text-blue-800 px-4 py-2 rounded-full text-sm font-medium"
-                    >
-                      {skill}
-                    </span>
-                  ))}
+              {profile.summary && (
+                <div className="mb-5 pb-5 border-b border-[var(--border)]">
+                  <SectionLabel>Summary</SectionLabel>
+                  <p className="text-[var(--ink-soft)] text-sm leading-relaxed">
+                    {profile.summary}
+                  </p>
                 </div>
-              </div>
-            )}
+              )}
 
-            {profile.experience?.length > 0 && (
-              <div className="mb-6 pb-6 border-b">
-                <h4 className="text-lg font-semibold mb-3 text-gray-700">
-                  Experience
-                </h4>
-                {profile.experience.map((exp, i) => (
-                  <div key={i} className="mb-3 p-3 bg-white rounded">
-                    <p className="font-semibold text-gray-800">{exp.title}</p>
-                    <p className="text-gray-600">{exp.company}</p>
-                    <p className="text-sm text-gray-500">{exp.duration}</p>
+              {profile.skills?.length > 0 && (
+                <div className="mb-5 pb-5 border-b border-[var(--border)]">
+                  <SectionLabel>Skills</SectionLabel>
+                  <div className="flex flex-wrap gap-2">
+                    {profile.skills.map((skill, i) => (
+                      <span
+                        key={i}
+                        className="bg-[var(--brand-soft)] text-[var(--brand-strong)] px-3 py-1 rounded-full text-xs font-medium"
+                      >
+                        {skill}
+                      </span>
+                    ))}
                   </div>
-                ))}
-              </div>
-            )}
+                </div>
+              )}
 
-            {profile.education?.length > 0 && (
-              <div>
-                <h4 className="text-lg font-semibold mb-3 text-gray-700">
-                  Education
-                </h4>
-                {profile.education.map((edu, i) => (
-                  <div key={i} className="mb-3 p-3 bg-white rounded">
-                    <p className="font-semibold text-gray-800">{edu.degree}</p>
-                    <p className="text-gray-600">{edu.institution}</p>
-                    <p className="text-sm text-gray-500">{edu.year}</p>
+              {profile.experience?.length > 0 && (
+                <div className="mb-5 pb-5 border-b border-[var(--border)]">
+                  <SectionLabel>Experience</SectionLabel>
+                  <div className="flex flex-col gap-2">
+                    {profile.experience.map((exp, i) => (
+                      <div
+                        key={i}
+                        className="p-3 rounded-lg bg-[var(--surface-sunken)]"
+                      >
+                        <p className="font-medium text-[var(--ink)] text-sm">
+                          {exp.title}
+                        </p>
+                        <p className="text-[var(--ink-soft)] text-sm">
+                          {exp.company}
+                        </p>
+                        <p className="text-xs text-[var(--ink-faint)] font-[family-name:var(--font-mono)]">
+                          {exp.duration}
+                        </p>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
+                </div>
+              )}
+
+              {profile.education?.length > 0 && (
+                <div>
+                  <SectionLabel>Education</SectionLabel>
+                  <div className="flex flex-col gap-2">
+                    {profile.education.map((edu, i) => (
+                      <div
+                        key={i}
+                        className="p-3 rounded-lg bg-[var(--surface-sunken)]"
+                      >
+                        <p className="font-medium text-[var(--ink)] text-sm">
+                          {edu.degree}
+                        </p>
+                        <p className="text-[var(--ink-soft)] text-sm">
+                          {edu.institution}
+                        </p>
+                        <p className="text-xs text-[var(--ink-faint)] font-[family-name:var(--font-mono)]">
+                          {edu.year}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </section>
+          )
         )}
       </div>
-      {/* Jobs Section */}
-      <div>
-        {profile && (
-          <div>
-            <h3 className="text-2xl font-bold mb-6 text-gray-800">
-              Matching Jobs
-            </h3>
 
-            {jobsLoading && (
-              <p className="text-gray-500 text-center py-6">Loading jobs...</p>
-            )}
+      {/* RIGHT: Jobs */}
+      <div className="min-w-0">
+        {(profileLoading || profile) && (
+          <section className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-5 sm:p-6 fade-up">
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="text-lg font-semibold text-[var(--ink)]">
+                Matching jobs
+              </h3>
+              {jobs.length > 0 && (
+                <span className="text-xs font-[family-name:var(--font-mono)] text-[var(--ink-faint)]">
+                  {jobs.length} found
+                </span>
+              )}
+            </div>
+
+            {jobsLoading && <JobListSkeleton />}
 
             {jobsError && (
-              <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-4 rounded">
-                <p className="text-red-600">{jobsError}</p>
+              <div className="bg-[#FDEDEA] border border-[#F4C7BE] text-[#A23B24] text-sm rounded-lg px-4 py-3 mb-4">
+                {jobsError}
               </div>
             )}
 
-            {!jobsLoading && jobs.length === 0 && !jobsError && (
-              <p className="text-gray-500 text-center py-6">
-                No jobs found for your skills.
-              </p>
-            )}
+            {!jobsLoading &&
+              !jobsError &&
+              !profileLoading &&
+              profile &&
+              jobs.length === 0 && <EmptyState />}
 
-            <div className="space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2">
               {jobs.map((job) => (
-                <div
-                  key={job.id}
-                  className="bg-white border border-gray-200 rounded-lg p-5 shadow-sm hover:shadow-md transition"
-                >
-                  <div className="flex justify-between items-start mb-2">
-                    <h4 className="text-lg font-semibold text-gray-800">
-                      {job.title}
-                    </h4>
-                    {job.isRemote && (
-                      <span className="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full font-medium">
-                        Remote
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-blue-600 font-medium mb-1">
-                    {job.company}
-                  </p>
-                  <p className="text-gray-500 text-sm mb-2">{job.location}</p>
-                  <p className="text-gray-500 text-sm mb-3">{job.salary}</p>
-                  <p className="text-gray-600 text-sm mb-4">
-                    {job.description}
-                  </p>
-                  <a
-                    href={job.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-block bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition"
-                  >
-                    Apply Now
-                  </a>
-                </div>
+                <JobCard key={job.id} job={job} />
               ))}
             </div>
-          </div>
+          </section>
+        )}
+
+        {!profileLoading && !profile && <NoCvState />}
+      </div>
+    </div>
+  );
+}
+
+function SectionLabel({ children }) {
+  return (
+    <p className="text-xs font-semibold uppercase tracking-wide text-[var(--ink-faint)] mb-2">
+      {children}
+    </p>
+  );
+}
+
+function JobCard({ job }) {
+  return (
+    <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-4 hover:border-[var(--brand)] hover:shadow-sm transition flex flex-col">
+      <div className="flex justify-between items-start gap-2 mb-1">
+        <h4 className="font-semibold text-[var(--ink)] text-sm leading-snug">
+          {job.title}
+        </h4>
+        {job.isRemote && (
+          <span className="shrink-0 bg-[var(--match-soft)] text-[#146B49] text-[11px] px-2 py-0.5 rounded-full font-medium">
+            Remote
+          </span>
         )}
       </div>
+      <p className="text-[var(--brand)] font-medium text-sm">{job.company}</p>
+      <p className="text-[var(--ink-faint)] text-xs mt-0.5">{job.location}</p>
+      <p className="text-[var(--ink-soft)] text-xs font-[family-name:var(--font-mono)] mt-1">
+        {job.salary}
+      </p>
+      <p className="text-[var(--ink-soft)] text-sm mt-3 leading-relaxed grow">
+        {job.description}
+      </p>
+      <a
+        href={job.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mt-4 inline-flex items-center justify-center gap-1.5 bg-[var(--brand)] text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[var(--brand-strong)] transition"
+      >
+        Apply now
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+          <path
+            d="M3 9 9 3M9 3H4M9 3v5"
+            stroke="currentColor"
+            strokeWidth="1.4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </a>
+    </div>
+  );
+}
+
+function EmptyState() {
+  return (
+    <div className="text-center py-10 px-4 rounded-xl bg-[var(--surface-sunken)]">
+      <p className="text-[var(--ink)] font-medium text-sm">
+        No matching jobs yet
+      </p>
+      <p className="text-[var(--ink-faint)] text-sm mt-1">
+        We'll refresh this list the next time you update your CV.
+      </p>
+    </div>
+  );
+}
+
+function NoCvState() {
+  return (
+    <div className="h-full min-h-64 flex items-center justify-center text-center py-16 px-6 rounded-2xl border-2 border-dashed border-[var(--border-strong)] bg-[var(--surface-sunken)]">
+      <div>
+        <p className="text-[var(--ink)] font-medium">Jobs will show up here</p>
+        <p className="text-[var(--ink-faint)] text-sm mt-1 max-w-xs">
+          Upload your CV on the left and we'll match you against live openings.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function ProfileSkeleton() {
+  return (
+    <section className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-5 sm:p-6 animate-pulse">
+      <div className="h-4 w-24 bg-[var(--surface-sunken)] rounded mb-5" />
+      <div className="space-y-2 mb-5">
+        <div className="h-3 bg-[var(--surface-sunken)] rounded w-full" />
+        <div className="h-3 bg-[var(--surface-sunken)] rounded w-5/6" />
+      </div>
+      <div className="flex gap-2 flex-wrap">
+        {[...Array(5)].map((_, i) => (
+          <div
+            key={i}
+            className="h-6 w-16 bg-[var(--surface-sunken)] rounded-full"
+          />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function JobListSkeleton() {
+  return (
+    <div className="grid gap-4 sm:grid-cols-2">
+      {[...Array(4)].map((_, i) => (
+        <div
+          key={i}
+          className="border border-[var(--border)] rounded-xl p-4 animate-pulse"
+        >
+          <div className="h-4 bg-[var(--surface-sunken)] rounded w-3/4 mb-2" />
+          <div className="h-3 bg-[var(--surface-sunken)] rounded w-1/2 mb-3" />
+          <div className="h-3 bg-[var(--surface-sunken)] rounded w-full mb-1" />
+          <div className="h-3 bg-[var(--surface-sunken)] rounded w-5/6 mb-3" />
+          <div className="h-8 bg-[var(--surface-sunken)] rounded" />
+        </div>
+      ))}
     </div>
   );
 }

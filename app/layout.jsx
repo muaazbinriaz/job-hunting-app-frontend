@@ -1,27 +1,35 @@
-import { Geist, Geist_Mono } from "next/font/google";
+import { Sora, Inter, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const sora = Sora({
+  variable: "--font-sora",
+  subsets: ["latin"],
+  weight: ["500", "600", "700"],
+});
+
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const plexMono = IBM_Plex_Mono({
+  variable: "--font-plex-mono",
   subsets: ["latin"],
+  weight: ["400", "500"],
 });
 
 export const metadata = {
-  title: "Job Hunt App",
-  description: "Upload and analyze your CV with AI",
+  title: "JobMatch — CV Analysis & Job Matching",
+  description:
+    "Upload your CV, get it analyzed, and find matching jobs with AI",
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${sora.variable} ${inter.variable} ${plexMono.variable} antialiased bg-[var(--bg)] text-[var(--ink)]`}
       >
         <Providers>{children}</Providers>
       </body>

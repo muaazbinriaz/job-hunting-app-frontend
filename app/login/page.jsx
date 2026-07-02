@@ -37,55 +37,145 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="max-w-md w-full bg-white p-8 rounded-lg shadow-md">
-        <h1 className="text-3xl font-bold mb-6 text-center">Login</h1>
-        {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-            {error}
+    <div className="min-h-screen grid lg:grid-cols-2 bg-[var(--bg)]">
+      {/* Side panel — hidden on mobile */}
+      <div className="hidden lg:flex flex-col justify-between p-12 bg-[var(--brand)] text-white relative overflow-hidden">
+        <div className="absolute inset-0 node-field opacity-10" />
+        <div className="relative">
+          <p className="font-[family-name:var(--font-display)] font-semibold text-xl">
+            JobMatch
+          </p>
+        </div>
+        <div className="relative max-w-sm">
+          <h1 className="font-[family-name:var(--font-display)] text-3xl font-semibold leading-tight">
+            One CV. Every match, found for you.
+          </h1>
+          <p className="text-white/70 mt-3 text-sm leading-relaxed">
+            Upload once — we read your skills and experience, then keep an eye
+            out for roles worth your time.
+          </p>
+          <div className="mt-8 flex items-center gap-2">
+            <PipelineNode label="Upload" active />
+            <div className="h-px w-8 bg-white/25" />
+            <PipelineNode label="Analyze" />
+            <div className="h-px w-8 bg-white/25" />
+            <PipelineNode label="Match" />
           </div>
-        )}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-2">Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email"
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-            />
+        </div>
+        <p className="relative text-white/40 text-xs">
+          © {new Date().getFullYear()} JobMatch
+        </p>
+      </div>
+
+      {/* Form panel */}
+      <div className="flex items-center justify-center px-4 py-16 sm:px-8">
+        <div className="w-full max-w-sm fade-up">
+          <div className="mb-8 lg:hidden">
+            <p className="font-[family-name:var(--font-display)] font-semibold text-xl text-[var(--brand)]">
+              JobMatch
+            </p>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium mb-2">Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter your password"
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-            />
-          </div>
+          <h2 className="text-2xl font-semibold text-[var(--ink)]">
+            Welcome back
+          </h2>
+          <p className="text-[var(--ink-soft)] text-sm mt-1 mb-7">
+            Log in to see your latest job matches.
+          </p>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 transition"
-          >
-            {loading ? "Logging in..." : "Login"}
-          </button>
-        </form>
+          {error && (
+            <div className="bg-[#FDEDEA] border border-[#F4C7BE] text-[#A23B24] text-sm px-4 py-3 rounded-lg mb-5">
+              {error}
+            </div>
+          )}
 
-        <div className="flex justify-center items-center mt-6 gap-1">
-          <p className="text-center text-sm">Don't have an account?</p>
-          <Link href="/register" className="text-blue-600 hover:underline">
-            Register here
-          </Link>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <Field label="Email">
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                className="input-field"
+                required
+              />
+            </Field>
+
+            <Field label="Password">
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                className="input-field"
+                required
+              />
+            </Field>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-[var(--accent)] text-white py-3 rounded-xl font-semibold hover:bg-[var(--accent-strong)] disabled:bg-[var(--border-strong)] disabled:text-[var(--ink-faint)] transition flex items-center justify-center gap-2"
+            >
+              {loading && (
+                <span className="h-4 w-4 rounded-full border-2 border-white/40 border-t-white animate-spin" />
+              )}
+              {loading ? "Logging in…" : "Log in"}
+            </button>
+          </form>
+
+          <p className="text-center text-sm text-[var(--ink-soft)] mt-6">
+            Don't have an account?{" "}
+            <Link
+              href="/register"
+              className="text-[var(--brand)] font-medium hover:underline"
+            >
+              Register here
+            </Link>
+          </p>
         </div>
       </div>
+
+      <style jsx global>{`
+        .input-field {
+          width: 100%;
+          padding: 0.65rem 1rem;
+          border: 1px solid var(--border-strong);
+          border-radius: 0.75rem;
+          background: var(--surface);
+          font-size: 0.925rem;
+        }
+        .input-field:focus {
+          outline: 2px solid var(--brand);
+          outline-offset: 1px;
+          border-color: var(--brand);
+        }
+      `}</style>
+    </div>
+  );
+}
+
+function Field({ label, children }) {
+  return (
+    <label className="block">
+      <span className="block text-sm font-medium text-[var(--ink)] mb-1.5">
+        {label}
+      </span>
+      {children}
+    </label>
+  );
+}
+
+function PipelineNode({ label, active }) {
+  return (
+    <div className="flex items-center gap-1.5">
+      <span
+        className="h-2 w-2 rounded-full bg-white"
+        style={{ opacity: active ? 1 : 0.4 }}
+      />
+      <span className="text-xs text-white/70 font-[family-name:var(--font-mono)]">
+        {label}
+      </span>
     </div>
   );
 }

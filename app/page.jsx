@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 export default function Home() {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const router = useRouter();
 
   useEffect(() => {
@@ -13,5 +13,12 @@ export default function Home() {
     if (status === "unauthenticated") router.push("/login");
   }, [status]);
 
-  return <p className="text-center mt-20">Loading...</p>;
+  return (
+    <div className="min-h-screen grid place-items-center bg-[var(--bg)]">
+      <div className="flex flex-col items-center gap-3">
+        <div className="h-8 w-8 rounded-full border-2 border-[var(--brand-soft)] border-t-[var(--brand)] animate-spin" />
+        <p className="text-sm text-[var(--ink-faint)]">Loading…</p>
+      </div>
+    </div>
+  );
 }
